@@ -7,7 +7,7 @@
 <h4 align="center">Streaming file transfer over WebTorrent (torrents on the web)</h4>
 
 
-To get a clone of https://instant.io running on your own server, follow these instructions.
+To get a clone running on your own server, follow these instructions.
 
 Get the code:
 
