@@ -1,0 +1,53 @@
+extends layout
+
+block body
+  main
+    picture
+      source(srcset='/logo.svg')
+      img(src='/logo.png' alt='Instant.io logo')
+    p.subtitle
+      | Streaming file transfer over
+      
+    #logHeading(style='display: none')
+    .speed
+    .log
+      h2.title List Torrent
+      each meta in metadataList 
+        .torrentInfo.nodata(fileList=meta.files name=meta.name infoHash=meta.infoHash)
+          p.torrentName=meta.name
+          .infoHash
+            span=`Torrent info hash: ${meta.infoHash}`
+            i.fa-regular.fa-copy
+          .torrentAction 
+            span='[GET]'
+            input(type="text" value=meta.infoHash class='hidden')
+
+    
+    section
+      h1 Start sharing
+      p Drag-and-drop files to begin seeding. Or choose a file:
+      input#seedFileInput(type='file' name='upload' multiple='')
+      #dropAreaSeed.drop-area
+        p Drop files here to start seeding
+    section
+      h1 Start downloading
+      p Drag-and-drop a torrent file to begin downloading. Or enter a magnet link:
+      form#downloadForm
+        label(for='torrentId') Download from a magnet link or info hash
+        input#torrentId(name='torrentId' placeholder='magnet:' required='')
+        button(type='submit') Download
+      #dropAreaDownload.drop-area
+        p Drop a .torrent file here to download
+    .modal-overlay.hidden
+    modal.fileListModal.hidden
+      button.close-button &times;
+
+    footer
+      p
+        | Powered by 
+        a(href='https://webtorrent.io' target='_blank' rel='noopener noreferrer') WebTorrent
+        | .
+        |                 100% open source &amp; free software. Source code available on
+        a(href='https://github.com/webtorrent/instant.io' target='_blank' rel='noopener noreferrer') GitHub
+        | .
+        |                 &copy; 2021 WebTorrent, LLC.
