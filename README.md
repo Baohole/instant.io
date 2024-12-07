@@ -12,13 +12,13 @@ To get a clone of https://instant.io running on your own server, follow these in
 Get the code:
 
 ```
-git clone https://github.com/webtorrent/instant.io
+git repo clone Baohole/instant.io
 cd instant.io
 npm install
 ```
 
 
-To start the server, run `npm run build && npm start`. That should be it!
+To start the server, run `npm start`. That should be it!
 
 ## Tips
 
