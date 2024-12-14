@@ -17,7 +17,6 @@ block body
           p.torrentName=meta.name
           .infoHash
             span=`Torrent info hash: ${meta.infoHash}`
-            i.fa-regular.fa-copy
           .torrentAction 
             span='[GET]'
             input(type="text" value=meta.infoHash class='hidden')
@@ -44,10 +43,4 @@ block body
 
     footer
       p
-        | Powered by 
-        a(href='https://webtorrent.io' target='_blank' rel='noopener noreferrer') WebTorrent
-        | .
-        |                 100% open source &amp; free software. Source code available on
-        a(href='https://github.com/webtorrent/instant.io' target='_blank' rel='noopener noreferrer') GitHub
-        | .
-        |                 &copy; 2021 WebTorrent, LLC.
+        | Powered by Hồ Lê Viết Bảo

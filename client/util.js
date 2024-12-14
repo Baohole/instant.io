@@ -9,7 +9,11 @@ exports.log = function log(item, unsafe) {
     const p = document.createElement('p')
     if (unsafe) p.innerHTML = item
     else p.textContent = item
-    logElem.appendChild(p)
+    logElem.appendChild(p);
+    // console.log(p);
+    setTimeout(() => {
+        logElem.removeChild(p);
+    }, 5000);
     return p
 }
 

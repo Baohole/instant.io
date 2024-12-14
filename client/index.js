@@ -19,6 +19,8 @@ const wsPort = parseInt(document.querySelector('body').getAttribute('wsPort'));
 let clientSocket;
 const fileListModal = document.querySelector('.fileListModal');
 const modalOverlay = document.querySelector('.modal-overlay');
+const download = document.querySelectorAll('.torrentInfo.nodata .torrentAction');
+
 
 globalThis.WEBTORRENT_ANNOUNCE = createTorrent.announceList
     .map(function (arr) {
@@ -91,25 +93,23 @@ function init() {
         if (hash !== '') downloadTorrent(hash)
     }
 
-    const download = document.querySelectorAll('.torrentInfo.nodata .torrentAction');
     download.forEach(d => {
         d.addEventListener('click', function () {
             const infoHash = d.querySelector('input').value.trim();
             if (infoHash !== '') downloadTorrent(infoHash);
-            else util.log("Torrent is not already")
-            d.remove()
+            else util.log("Torrent is not already");
         });
     });
 
-    // Register a protocol handler for "magnet:" (will prompt the user)
-    if ('registerProtocolHandler' in navigator) {
-        navigator.registerProtocolHandler('magnet', window.location.origin + '#%s', 'Instant.io')
-    }
+    // // Register a protocol handler for "magnet:" (will prompt the user)
+    // if ('registerProtocolHandler' in navigator) {
+    //     navigator.registerProtocolHandler('magnet', window.location.origin + '#%s', 'Instant.io')
+    // }
 
-    // Register a service worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-    }
+    // // Register a service worker
+    // if ('serviceWorker' in navigator) {
+    //     navigator.serviceWorker.register('/sw.js')
+    // }
 }
 
 function getRtcConfig(cb) {
@@ -134,6 +134,7 @@ function getRtcConfig(cb) {
 
 function onFiles(files) {
     debug('got files:')
+    // console.log(files)
     files.forEach(function (file) {
         debug(' - %s (%s bytes)', file.name, file.size)
     })
@@ -181,7 +182,7 @@ function downloadTorrent(torrentId, opts = 0) {
 }
 
 function downloadTorrentFile(file) {
-    util.unsafeLog('Downloading torrent from <strong>' + escapeHtml(file.name) + '</strong>')
+    // util.unsafeLog('Downloading torrent from <strong>' + escapeHtml(file.name) + '</strong>')
     getClient(function (err, client) {
         if (err) return util.error(err)
         client.add(file, onTorrent)
@@ -196,18 +197,11 @@ function seed(files) {
     getClient(function (err, client) {
         if (err) return util.error(err)
         client.seed(files, torrent => {
-            onTorrent(torrent);
+            onTorrent(torrent, 'seeding');
             clientSocket.seeding(torrent)
         });
 
     })
-}
-function toTitleCase(str) {
-    return str
-        .toLowerCase() // Convert the string to lowercase
-        .split(' ') // Split the string into an array of words
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
-        .join(' '); // Join the words back into a single string
 }
 
 function onTorrent(torrent, opts = 0) {
@@ -217,8 +211,9 @@ function onTorrent(torrent, opts = 0) {
     const upload = document.querySelector('input[name=upload]')
     upload.value = upload.defaultValue // reset upload element
 
-    const torrentFileName = formatName(torrent.name) + '.torrent'
-    const torrentName = toTitleCase(torrent.name) + '.torrent'
+    const torrentName = path.basename(torrent.name, path.extname(torrent.name)) + '.torrent';
+    // console.log(torrentName);
+    const torrentFileName = formatName(torrent.name) + '.torrent';
 
     const info = document.createElement('div');
     info.classList.add('torrentInfo', 'data');
@@ -232,10 +227,23 @@ function onTorrent(torrent, opts = 0) {
             <a href="/#${torrent.infoHash}"
                 onclick="prompt('Share this link with anyone you want to download this torrent:', ${this.href});return false;"
                 class="shareLink">[Share link]</a>
-            <a href=${torrent.magnetURI} target="_blank" class="getMagnetURI">[Magnet URI]</a>
-            <a href=${torrent.torrentFileBlobURL} target="_blank" download=${torrentName} class="downloadTorrent">[Download.torrent]</a>
+            <a target="_blank" class="getMagnetURI">[Magnet URI]</a>
+            <a href=${torrent.torrentFileBlobURL} target="_blank" download="${torrentName}" class="downloadTorrent">[Download.torrent]</a>
         </section>`;
 
+    const magnetURI = info.querySelector('.getMagnetURI');
+    magnetURI.addEventListener('click', () => {
+        navigator.clipboard.writeText(torrent.magnetURI).then(() => {
+            // Optional: Add a visual feedback
+            magnetURI.classList.add('copied');
+            setTimeout(() => {
+                magnetURI.classList.remove('copied');
+            }, 1000);
+        })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+    })
 
     function updateSpeed() {
         const progress = (100 * torrent.progress).toFixed(1)
@@ -345,17 +353,12 @@ function onTorrent(torrent, opts = 0) {
     action.appendChild(downloadAllBtn);
     info.appendChild(action);
     downloadSelected(openFileList);
-    util.appendElemToLog(info);
-    const infoHashContainer = document.querySelector('.infoHash');
+    const infoHashContainer = info.querySelector('.infoHash');
     const copyIcon = infoHashContainer.querySelector('.fa-copy');
-    const infoHashText = infoHashContainer.querySelector('span');
 
     copyIcon.addEventListener('click', () => {
-        // Extract the info hash text (assuming it's after the ': ')
-        const infoHash = infoHashText.textContent.split(': ')[1];
-
         // Use the Clipboard API to copy the text
-        navigator.clipboard.writeText(infoHash)
+        navigator.clipboard.writeText(torrent.infoHash)
             .then(() => {
                 // Optional: Add a visual feedback
                 copyIcon.classList.add('copied');
@@ -374,14 +377,15 @@ function onTorrent(torrent, opts = 0) {
             fileListModal.innerHTML += `<span class='folderName'>${torrentFileName}</span>`;
 
             const ul = document.createElement('ul');
-            ul.classList.add('file-list')
+            ul.classList.add('file-list');
+            // console.log(fileUrls);
             for (let index in fileUrls) {
                 // console.log(index);
                 const li = document.createElement('li');
                 li.innerHTML += `
                     <input type="checkbox" class="file-checkbox" value=${index}>
                     <i class="file-icon fas fa-file-lines"></i>
-                    <span class="file-name">${torrent.files[index].name}</span>
+                    <span class="file-name">${fileUrls[index].download}</span>
                 `
                 ul.appendChild(li);
             }
@@ -398,10 +402,10 @@ function onTorrent(torrent, opts = 0) {
                     .filter(box => box.checked)
                     .map(box => JSON.parse(box.value));
                 if (selected.length === 0) {
-                    util.log('No files selected');
                     return;
                 }
                 selected.forEach(indx => {
+                    // console.log(fileUrls[indx]);
                     fileUrls[indx].click();
                 })
                 // console.log(selected);
@@ -419,4 +423,20 @@ function onTorrent(torrent, opts = 0) {
         });
     }
 
+    if (opts === 'seeding') {
+        util.appendElemToLog(info);     
+    }
+    else {
+        torrent.on('done', () => {
+            download.forEach(d => {
+                const input = d.querySelector('input');
+                console.log(input);
+                if (input.value == torrent.infoHash) {
+                    d.parentNode.remove();
+                }
+            });
+        
+            util.appendElemToLog(info);
+        })
+    }
 }
