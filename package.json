@@ -48,21 +48,19 @@
   "private": true,
   "scripts": {
     "build": "npm run build-css && npm run build-js",
-    "build-css": "stylus css/main.styl -o static/ -c",
-    "build-js": "browserify client > static/bundle.js",
+    "build-css": "stylus css/main.styl -o public/ -c",
+    "build-js": "browserify client > public/bundle.js",
     "deploy": "./tools/trigger-deploy.sh",
     "prepare": "husky install",
-    "secret-download": "rsync -a -O -v --delete feross@webtorrent:\"/home/feross/www/instant.io/secret/\" secret/",
-    "secret-upload": "rsync -a -O -v --delete secret/ feross@webtorrent:/home/feross/www/instant.io/secret/",
     "size": "npm run size-js && npm run size-css",
-    "size-css": "npm run build-css && cat static/main.css | gzip | wc -c",
-    "size-js": "npm run build-js && cat static/bundle.js | gzip | wc -c",
+    "size-css": "npm run build-css && cat public/main.css | gzip | wc -c",
+    "size-js": "npm run build-js && cat public/bundle.js | gzip | wc -c",
     "start": "npm run build && start nodemon --inspect server && npm run watch-js && npm run watch-css",
     "test": "standard",
     "update-authors": "./tools/update-authors.sh",
     "watch": "npm run watch-css & npm run watch-js & DEBUG=instant* nodemon server",
-    "watch-css": "stylus css/main.styl -o static/ -w",
-    "watch-js": "watchify client -o static/bundle.js -dv"
+    "watch-css": "stylus css/main.styl -o public/ -w",
+    "watch-js": "watchify client -o public/bundle.js -dv"
   },
   "directories": {
     "lib": "lib"
