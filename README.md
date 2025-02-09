@@ -20,12 +20,7 @@ npm install
 
 To start the server, run `npm start`. That should be it!
 
-## Tips
-
-1. Create a shareable link by adding a torrent infohash or magnet link to the end
-of the URL. For example: `localhost:3000/#INFO_HASH` or `localhost:3000/#MAGNET_LINK`.
-
-2. You can add multiple torrents in the same browser window.
+You can add multiple torrents in the same browser window.
 
 ## License
 
